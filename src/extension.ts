@@ -12,7 +12,7 @@ var baseRequest;
 export function activate(context: vscode.ExtensionContext) {
 
     configureHttpRequest();
-	vscode.workspace.onDidChangeConfiguration(e => configureHttpRequest());
+    vscode.workspace.onDidChangeConfiguration(e => configureHttpRequest());
 
     let paster = new Paster();
     let disposable = vscode.commands.registerCommand('pasteURL.PasteURL', () => {
@@ -173,10 +173,7 @@ export class Paster {
     }
 
     processTitle(title, url) {
-        if (title == undefined) {
-            return url
-        }
-        return title.trim()
+        return title ? decodeHtmlNamedChars(decodeHtmlCharCodes(title)).trim() : url;
     }
 
     showMessage(content) {
@@ -205,11 +202,31 @@ function configureHttpRequest() {
             if (!proxy.startsWith("http")) {
                 proxy = "http://" + proxy
             }
-            baseRequest = request.defaults({'proxy': proxy});
+            baseRequest = request.defaults({ 'proxy': proxy });
         }
     }
 
     if (baseRequest == undefined) {
         baseRequest = hyperquest
     }
+}
+
+/** Decode HTML char codes in string. For example `&#32;` for space, etc. */
+function decodeHtmlCharCodes(str: string) {
+    return str.replace(/&#(\d+);/g, (match, c) => String.fromCharCode(c));
+}
+
+/** Decode HTML named characters, for example `&quot;`, `&nbsp;`, etc.  */
+function decodeHtmlNamedChars(str: string) {
+    // common HTML named characters. 
+    // A full list at https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+    const namedChars = {
+        amp: '&',
+        apos: `'`,
+        gt: '>',
+        lt: '<',
+        nbsp: ' ',
+        quot: '"',
+    };
+    return str.replace(/&([\w^\d^\s]+);/g, (m, c) => (c in namedChars) ? namedChars[c] : c);
 }
