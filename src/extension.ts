@@ -225,6 +225,9 @@ function decodeHtmlNamedChars(str: string) {
         apos: `'`,
         gt: '>',
         lt: '<',
+        hyphen: '-',
+        mdash: '—',
+        ndash: '–',
         nbsp: ' ',
         quot: '"',
     };
